@@ -79,6 +79,8 @@
       if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && player.onGround) {
         player.dy = jumpPower;
       }
+      if (keys['f']) {
+        typeWriter()
     }
 
     function drawGround() {
