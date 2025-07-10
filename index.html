@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Farewell Platformer</title>
+  <title>Farewell Tribute</title>
   <style>
     body {
       margin: 0;
@@ -12,10 +12,12 @@
       color: #fff;
       font-family: 'Courier New', Courier, monospace;
     }
+
     canvas {
       display: block;
       background: linear-gradient(to top, #444, #222);
     }
+
     #message {
       position: absolute;
       bottom: 20px;
@@ -24,78 +26,52 @@
       font-size: 1.2em;
       color: #00ffff;
       white-space: pre-line;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <canvas id="bgCanvas" width="800" height="400"></canvas>
   <div id="message"></div>
+  <audio id="bgm" src="farewell.mp3" loop></audio>
+
   <script>
-    const canvas = document.getElementById('gameCanvas');
+    const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
+    const messageBox = document.getElementById('message');
+    const bgm = document.getElementById('bgm');
 
-    const player = {
-      x: 100,
-      y: 300,
-      width: 30,
-      height: 30,
-      color: '#0ff',
-      dy: 0,
-      onGround: false
-    };
+    // Resize canvas to window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    const keys = {};
-    const gravity = 0.8;
-    const jumpPower = -12;
+    // Floating Stars
+    const stars = Array.from({ length: 100 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.5 + 0.2
+    }));
 
-    window.addEventListener('keydown', (e) => {
-      keys[e.key] = true;
-    });
-
-    window.addEventListener('keyup', (e) => {
-      keys[e.key] = false;
-    });
-
-    function drawPlayer() {
-      ctx.fillStyle = player.color;
-      ctx.fillRect(player.x, player.y, player.width, player.height);
-    }
-
-    function updatePlayer() {
-      if (keys['ArrowLeft'] || keys['a']) player.x -= 5;
-      if (keys['ArrowRight'] || keys['d']) player.x += 5;
-
-      player.dy += gravity;
-      player.y += player.dy;
-
-      if (player.y + player.height >= canvas.height - 20) {
-        player.y = canvas.height - 20 - player.height;
-        player.dy = 0;
-        player.onGround = true;
-      } else {
-        player.onGround = false;
-      }
-
-      if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && player.onGround) {
-        player.dy = jumpPower;
-      }
-    }
-
-    function drawGround() {
-      ctx.fillStyle = '#555';
-      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-    }
-
-    function gameLoop() {
+    function drawStars() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawGround();
-      updatePlayer();
-      drawPlayer();
-      requestAnimationFrame(gameLoop);
+      ctx.fillStyle = '#fff';
+      stars.forEach(star => {
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+        star.y += star.speed;
+        if (star.y > canvas.height) {
+          star.y = 0;
+          star.x = Math.random() * canvas.width;
+        }
+      });
+      requestAnimationFrame(drawStars);
     }
+    drawStars();
 
-    gameLoop();
-
+    // Typewriter Message
     const messageText = [
       "Dear Teacher,",
       "You've taught us more than just ICT.",
@@ -107,38 +83,47 @@
       "Here’s a virtual standing ovation from all of us! 👏👏👏",
       "With love, from Grade 6 💻💙",
       "Goodbye and best wishes on your next adventure!",
-      "Thank You!"
+      "Thank You!",
     ];
 
     let index = 0;
     let charIndex = 0;
-    const messageBox = document.getElementById('message');
+    let currentLine = '';
 
     function typeWriter() {
+      messageBox.style.opacity = 1;
+
       if (index < messageText.length) {
         const line = messageText[index];
-        if (charIndex === 0) messageBox.textContent += "\n";  // Add spacing per line
 
         if (charIndex < line.length) {
-          messageBox.textContent += line.charAt(charIndex);
+          currentLine += line.charAt(charIndex);
+          messageBox.textContent = messageBox.textContent.replace(/\n*$/, '') + currentLine + '\n';
           charIndex++;
           setTimeout(typeWriter, 50);
         } else {
+          currentLine = '';
           charIndex = 0;
           index++;
           setTimeout(typeWriter, 800);
         }
+      } else {
+        messageBox.textContent += "\n💖 The End 💖";
       }
     }
 
-    // Auto-start after 3 sec OR press 'f' to trigger
+    // Start message and audio after 3 seconds or press 'f'
     setTimeout(() => {
-      if (index === 0) typeWriter();
+      if (index === 0) {
+        typeWriter();
+        bgm.play().catch(() => {}); // Handle autoplay restrictions silently
+      }
     }, 3000);
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'f' && index === 0) {
         typeWriter();
+        bgm.play().catch(() => {});
       }
     });
   </script>
