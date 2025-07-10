@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Goodbye Quest - Farewell ICT Teacher</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      font-family: 'Comic Sans MS', sans-serif;
+      color: #fff;
+      text-align: center;
+    }
+    canvas {
+      border: 4px solid #fff;
+      margin-top: 20px;
+      background: #333;
+    }
+    #messageBox {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #ffeb3b;
+      min-height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎓 Goodbye Quest 🎮</h1>
+  <p>Use arrow keys to collect memories for our ICT teacher!</p>
+  <canvas id="game" width="400" height="400"></canvas>
+  <div id="messageBox"></div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const tileSize = 40;
+    const gridSize = 10;
+
+    const player = { x: 0, y: 0 };
+    const items = [
+      { x: 6, y: 2, msg: "Thank you for teaching us Scratch!" },
+      { x: 3, y: 7, msg: "You made PowerPoint fun!" },
+      { x: 8, y: 4, msg: "I’ll never forget the typing games!" }
+    ];
+    const collected = new Set();
+    const messageBox = document.getElementById('messageBox');
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw grid
+      for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+          ctx.strokeStyle = "#555";
+          ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
+      }
+
+      // Draw items
+      ctx.fillStyle = "#00e5ff";
+      items.forEach((item, i) => {
+        if (!collected.has(i)) {
+          ctx.beginPath();
+          ctx.arc(item.x * tileSize + 20, item.y * tileSize + 20, 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+
+      // Draw player
+      ctx.fillStyle = "#76ff03";
+      ctx.fillRect(player.x * tileSize + 5, player.y * tileSize + 5, 30, 30);
+    }
+
+    function checkCollision() {
+      items.forEach((item, i) => {
+        if (player.x === item.x && player.y === item.y && !collected.has(i)) {
+          collected.add(i);
+          messageBox.textContent = item.msg;
+
+          if (collected.size === items.length) {
+            setTimeout(() => {
+              messageBox.innerHTML = "🎉 Thank you, Teacher! We'll miss you! 💻<br>– Grade 6";
+            }, 1000);
+          }
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' && player.y > 0) player.y--;
+      else if (e.key === 'ArrowDown' && player.y < gridSize - 1) player.y++;
+      else if (e.key === 'ArrowLeft' && player.x > 0) player.x--;
+      else if (e.key === 'ArrowRight' && player.x < gridSize - 1) player.x++;
+      draw();
+      checkCollision();
+    });
+
+    draw();
+  </script>
+</body>
+</html>
