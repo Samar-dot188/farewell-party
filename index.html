@@ -3,63 +3,157 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Farewell Tribute</title>
+  <title>Farewell, Teacher</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
-      background: #111;
-      font-family: 'Courier New', Courier, monospace;
+      background: black;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      /* Added transition for the final zoom effect */
+      transition: transform 5s ease-in-out;
     }
 
     canvas {
-      display: block;
-      background: linear-gradient(to top, #444, #222);
-      opacity: 0;
-      transition: opacity 2s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
     }
 
-    #message {
-      position: absolute;
-      bottom: 40px;
-      width: 100%;
+    .message-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
       text-align: center;
-      font-size: 1.5em;
-      line-height: 1.8;
+      height: 100vh;
+      padding: 20px;
+      font-size: 2em;
+      line-height: 1.6;
+      transition: transform 5s ease-in-out;
       color: #00ffff;
-      white-space: pre-line;
-      opacity: 0;
-      transition: opacity 0.8s ease-in-out;
-      padding: 0 20px;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #00ffff;
     }
 
-    #startBtn {
+    .balloon {
+      width: 40px;
+      height: 50px;
+      background: red;
+      border-radius: 50% 50% 45% 45%;
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 1em 2em;
-      font-size: 1.2em;
-      background: #00ffff;
-      color: #111;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      z-index: 10;
-      box-shadow: 0 0 10px #00ffff;
+      bottom: -100px;
+      /* Use a CSS variable for randomization */
+      --random-x: calc((var(--random) - 0.5) * 200px);
+      --random-rot: calc((var(--random) - 0.5) * 90deg);
+      animation: float 10s ease-in-out forwards;
     }
+
+    .tail {
+      width: 2px;
+      height: 30px;
+      background: white;
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    @keyframes float {
+      from {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(-120vh) translateX(var(--random-x)) rotate(var(--random-rot));
+        opacity: 0;
+      }
+    }
+
+    .confetti {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      top: -20px; /* Start just above the screen */
+      opacity: 0;
+      animation: fall-and-scatter 5s linear forwards;
+    }
+
+    @keyframes fall-and-scatter {
+      from {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 1;
+      }
+    }
+
   </style>
 </head>
 <body>
-  <canvas id="bgCanvas"></canvas>
-  <div id="message"></div>
-  <button id="startBtn">Start Tribute</button>
+  <canvas id="stars"></canvas>
+  <div class="message-container" id="message"></div>
 
   <script>
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
-    const messageBox = document.getElementById('message');
-    const startBtn = document.getElementById('startBtn');
+    const messages = [
+      "Dear Pooja Miss,",
+      "You've taught us more than just ICT.",
+      "You showed us how to think, explore, and be curious.",
+      "We'll miss your jokes during class and your endless patience!",
+      "From formatting Word docs...",
+      "To understanding algorithms...",
+      "You made computers FUN.",
+      "Here's a virtual standing ovation from all of us! 👏👏👏",
+      "A Heartfull guesture from us!",
+      "With love, from Grade 6B 💻💙",
+      "Goodbye and best wishes on your next adventure!",
+      "Thank You!"
+    ];
+
+    const messageDiv = document.getElementById('message');
+    let i = 0;
+
+    function typeWriterEffect(msg, cb) {
+      let j = 0;
+      messageDiv.innerHTML = '';
+      const interval = setInterval(() => {
+        messageDiv.innerHTML = msg.slice(0, j + 1);
+        j++;
+        if (j >= msg.length) {
+          clearInterval(interval);
+          setTimeout(cb, 1200);
+        }
+      }, 50);
+    }
+
+    function showNextMessage() {
+      if (i < messages.length) {
+        typeWriterEffect(messages[i], showNextMessage);
+        i++;
+      } else {
+        triggerCelebration();
+      }
+    }
+
+    showNextMessage();
+
+    function triggerCelebration() {
+      messageDiv.style.transform = "scale(1.2)";
+      launchBalloons();
+      launchConfetti();
+
+      // --- ADDED ZOOM EFFECT ---
+      // After a short delay, zoom in on the entire page by 50%
+      setTimeout(() => {
+        document.body.style.transform = 'scale(1.5)';
+      }, 1000); // Start the zoom 1 second after the celebration starts
+    }
+
+    // Starry background
+    const canvas = document.getElementById("stars");
+    const ctx = canvas.getContext("2d");
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
@@ -67,24 +161,26 @@
     }
 
     resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
-    // Floating Stars
-    const stars = Array.from({ length: 100 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 2 + 0.5,
-      speed: Math.random() * 0.5 + 0.2
-    }));
+    const stars = [];
+    for (let i = 0; i < 150; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.5,
+        d: Math.random() * 0.5 + 0.05
+      });
+    }
 
     function drawStars() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = "white";
       stars.forEach(star => {
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
         ctx.fill();
-        star.y += star.speed;
+        star.y += star.d;
         if (star.y > canvas.height) {
           star.y = 0;
           star.x = Math.random() * canvas.width;
@@ -93,64 +189,50 @@
       requestAnimationFrame(drawStars);
     }
 
-    // Typewriter Message
-    const messageText = [
-      "Dear Teacher,",
-      "You've taught us more than just ICT.",
-      "You showed us how to think, explore, and be curious.",
-      "We'll miss your jokes during class and your endless patience!",
-      "From formatting Word docs...",
-      "To understanding algorithms...",
-      "You made computers FUN.",
-      "Here’s a virtual standing ovation from all of us! 👏👏👏",
-      "With love, from Grade 6 💻💙",
-      "Goodbye and best wishes on your next adventure!",
-      "Thank You!"
-    ];
+    drawStars();
 
-    let index = 0;
-    let charIndex = 0;
-    let currentLine = '';
+    // Balloons
+    function launchBalloons() {
+      for (let i = 0; i < 25; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.style.setProperty('--random', Math.random());
+        balloon.style.left = Math.random() * window.innerWidth + 'px';
+        balloon.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+        balloon.style.animationDelay = `${Math.random() * 2}s`;
 
-    function typeWriter() {
-      messageBox.style.opacity = 1;
+        const tail = document.createElement('div');
+        tail.className = 'tail';
+        balloon.appendChild(tail);
 
-      if (index < messageText.length) {
-        const line = messageText[index];
+        document.body.appendChild(balloon);
 
-        if (charIndex < line.length) {
-          currentLine += line.charAt(charIndex);
-          messageBox.textContent = messageBox.textContent.replace(/\n*$/, '') + currentLine + '\n';
-          charIndex++;
-          setTimeout(typeWriter, 50);
-        } else {
-          currentLine = '';
-          charIndex = 0;
-          index++;
-          setTimeout(typeWriter, 800);
-        }
-      } else {
-        messageBox.textContent += "\n💖 The End 💖";
         setTimeout(() => {
-          canvas.style.opacity = 0.3;
-          messageBox.innerHTML += "<br><br><span style='font-size:2em; color:#FFD700;'>🎓 Thank You, Teacher! 🎓</span>";
-        }, 2000);
+          balloon.remove();
+        }, 10000); // Clean up balloon after animation
       }
     }
 
-    startBtn.addEventListener('click', () => {
-      startBtn.style.display = 'none';
-      canvas.style.opacity = 1;
-      typeWriter();
-    });
+    // Confetti
+    function launchConfetti() {
+      for (let i = 0; i < 200; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'f' && index === 0 && startBtn.style.display !== 'none') {
-        startBtn.click();
+        // Set random properties for a better scattering effect
+        confetti.style.left = `${Math.random() * 100}vw`; // horizontal start
+        confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        confetti.style.animationDuration = `${Math.random() * 3 + 4}s`; // duration
+        confetti.style.animationDelay = `${Math.random() * 3}s`; // delay start
+
+        document.body.appendChild(confetti);
+
+        // Remove the confetti element after its animation is complete
+        setTimeout(() => {
+          confetti.remove();
+        }, 7000); // 7s is a safe time based on max duration + delay
       }
-    });
-
-    drawStars();
+    }
   </script>
 </body>
 </html>
