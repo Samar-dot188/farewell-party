@@ -5,171 +5,131 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Farewell Platformer</title>
   <style>
-    body { margin: 0; background: #1e1e1e; color: #fff; font-family: monospace; overflow: hidden; }
-    canvas { background: #111; display: block; margin: 0 auto; border: 2px solid #fff; }
-    #typewriter { white-space: pre-line; font-size: 18px; margin: 20px auto; width: 90%; max-width: 600px; display: none; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #111;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+    }
+    canvas {
+      display: block;
+      background: linear-gradient(to top, #444, #222);
+    }
+    #message {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.2em;
+      color: #00ffff;
+    }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="640" height="360"></canvas>
-  <div id="typewriter"></div>
-
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <div id="message"></div>
   <script>
-    // Platformer setup
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const player = { x: 50, y: 300, width: 30, height: 30, vx: 0, vy: 0, jumping: false, grounded: false };
+    const player = {
+      x: 100,
+      y: 300,
+      width: 30,
+      height: 30,
+      color: '#0ff',
+      dy: 0,
+      onGround: false
+    };
+
+    const keys = {};
+
     const gravity = 0.8;
-    const friction = 0.8;
     const jumpPower = -12;
-    const moveSpeed = 0.5;
-    const maxSpeed = 5;
-    const groundY = 330;
-    let keys = {};
 
-    const platforms = [
-      { x: 0, y: groundY, width: canvas.width, height: 30 },
-      { x: 150, y: 260, width: 100, height: 10 },
-      { x: 300, y: 200, width: 100, height: 10 },
-      { x: 450, y: 150, width: 100, height: 10 },
-      { x: 600, y: 120, width: 40, height: 40 } // goal platform
-    ];
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+    });
 
-    const goal = { x: 610, y: 130, width: 20, height: 20 };
-    let gameOver = false;
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+    });
 
     function drawPlayer() {
-      ctx.fillStyle = "#4caf50";
+      ctx.fillStyle = player.color;
       ctx.fillRect(player.x, player.y, player.width, player.height);
     }
 
-    function drawPlatforms() {
-      ctx.fillStyle = "#555";
-      for (const p of platforms) {
-        ctx.fillRect(p.x, p.y, p.width, p.height);
+    function updatePlayer() {
+      if (keys['ArrowLeft'] || keys['a']) player.x -= 5;
+      if (keys['ArrowRight'] || keys['d']) player.x += 5;
+
+      player.dy += gravity;
+      player.y += player.dy;
+
+      if (player.y + player.height >= canvas.height) {
+        player.y = canvas.height - player.height;
+        player.dy = 0;
+        player.onGround = true;
+      } else {
+        player.onGround = false;
+      }
+
+      if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && player.onGround) {
+        player.dy = jumpPower;
       }
     }
 
-    function drawGoal() {
-      ctx.fillStyle = "#fdd835";
-      ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+    function drawGround() {
+      ctx.fillStyle = '#555';
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
     }
 
-    function update() {
-      if (gameOver) return;
-
-      // Horizontal movement
-      if (keys["ArrowRight"] || keys["d"]) player.vx += moveSpeed;
-      if (keys["ArrowLeft"] || keys["a"]) player.vx -= moveSpeed;
-
-      player.vx *= friction;
-      if (player.vx > maxSpeed) player.vx = maxSpeed;
-      if (player.vx < -maxSpeed) player.vx = -maxSpeed;
-
-      player.x += player.vx;
-
-      // Jump
-      if ((keys["ArrowUp"] || keys["w"] || keys[" "]) && player.grounded) {
-        player.vy = jumpPower;
-        player.grounded = false;
-      }
-
-      player.vy += gravity;
-      player.y += player.vy;
-
-      // Collision
-      player.grounded = false;
-      for (const p of platforms) {
-        if (
-          player.x < p.x + p.width &&
-          player.x + player.width > p.x &&
-          player.y < p.y + p.height &&
-          player.y + player.height > p.y
-        ) {
-          // Collision from top
-          if (player.vy > 0 && player.y + player.height - player.vy <= p.y) {
-            player.y = p.y - player.height;
-            player.vy = 0;
-            player.grounded = true;
-          }
-        }
-      }
-
-      // Boundaries
-      if (player.x < 0) player.x = 0;
-      if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-
-      // Goal detection
-      if (
-        player.x < goal.x + goal.width &&
-        player.x + player.width > goal.x &&
-        player.y < goal.y + goal.height &&
-        player.y + player.height > goal.y
-      ) {
-        gameOver = true;
-        setTimeout(showMessages, 1000);
-      }
-    }
-
-    function draw() {
+    function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlatforms();
-      drawGoal();
+      drawGround();
+      updatePlayer();
       drawPlayer();
+      requestAnimationFrame(gameLoop);
     }
 
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
+    gameLoop();
 
-    document.addEventListener("keydown", e => keys[e.key] = true);
-    document.addEventListener("keyup", e => keys[e.key] = false);
-
-    loop();
-
-    // Typewriter farewell message
-    const messages = [
+    const messageText = [
       "Dear Teacher,",
       "You've taught us more than just ICT.",
       "You showed us how to think, explore, and be curious.",
-      "We\u2019ll miss your jokes during class and your endless patience!",
-      "",
+      "We'll miss your jokes during class and your endless patience!",
       "From formatting Word docs...",
       "To understanding algorithms...",
       "You made computers FUN.",
-      "",
-      "Here\u2019s a virtual standing ovation from all of us! \uD83D\uDC4F\uD83D\uDC4F\uD83D\uDC4F",
-      "",
-      "With love, from Grade 6 \uD83D\uDCBB\uD83D\uDC99",
-      "",
+      "Here’s a virtual standing ovation from all of us! 👏👏👏",
+      "With love, from Grade 6 💻💙",
       "Goodbye and best wishes on your next adventure!"
     ];
 
-    const typewriterDiv = document.getElementById("typewriter");
+    let index = 0;
+    let charIndex = 0;
+    const messageBox = document.getElementById('message');
 
-    function showMessages() {
-      canvas.style.display = "none";
-      typewriterDiv.style.display = "block";
-      typeMessage(0);
-    }
-
-    function typeMessage(i) {
-      if (i >= messages.length) return;
-      let j = 0;
-      const line = messages[i];
-      const interval = setInterval(() => {
-        typewriterDiv.innerHTML += line[j];
-        j++;
-        if (j >= line.length) {
-          clearInterval(interval);
-          typewriterDiv.innerHTML += "\n";
-          setTimeout(() => typeMessage(i + 1), 500);
+    function typeWriter() {
+      if (index < messageText.length) {
+        const line = messageText[index];
+        if (charIndex < line.length) {
+          messageBox.textContent += line.charAt(charIndex);
+          charIndex++;
+          setTimeout(typeWriter, 50);
+        } else {
+          messageBox.textContent += "\n";
+          charIndex = 0;
+          index++;
+          setTimeout(typeWriter, 1000);
         }
-      }, 50);
+      }
     }
+
+    setTimeout(typeWriter, 3000);
   </script>
 </body>
 </html>
