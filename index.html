@@ -9,42 +9,65 @@
       margin: 0;
       overflow: hidden;
       background: #111;
-      color: #fff;
       font-family: 'Courier New', Courier, monospace;
     }
 
     canvas {
       display: block;
       background: linear-gradient(to top, #444, #222);
+      opacity: 0;
+      transition: opacity 2s ease;
     }
 
     #message {
       position: absolute;
-      bottom: 20px;
+      bottom: 40px;
       width: 100%;
       text-align: center;
-      font-size: 1.2em;
+      font-size: 1.5em;
+      line-height: 1.8;
       color: #00ffff;
       white-space: pre-line;
       opacity: 0;
       transition: opacity 0.8s ease-in-out;
+      padding: 0 20px;
+    }
+
+    #startBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 1em 2em;
+      font-size: 1.2em;
+      background: #00ffff;
+      color: #111;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 0 10px #00ffff;
     }
   </style>
 </head>
 <body>
-  <canvas id="bgCanvas" width="800" height="400"></canvas>
+  <canvas id="bgCanvas"></canvas>
   <div id="message"></div>
-  <audio id="bgm" src="farewell.mp3" loop></audio>
+  <button id="startBtn">Start Tribute</button>
 
   <script>
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
     const messageBox = document.getElementById('message');
-    const bgm = document.getElementById('bgm');
+    const startBtn = document.getElementById('startBtn');
 
-    // Resize canvas to window size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
     // Floating Stars
     const stars = Array.from({ length: 100 }, () => ({
@@ -69,7 +92,6 @@
       });
       requestAnimationFrame(drawStars);
     }
-    drawStars();
 
     // Typewriter Message
     const messageText = [
@@ -83,7 +105,7 @@
       "Here’s a virtual standing ovation from all of us! 👏👏👏",
       "With love, from Grade 6 💻💙",
       "Goodbye and best wishes on your next adventure!",
-      "Thank You!",
+      "Thank You!"
     ];
 
     let index = 0;
@@ -109,23 +131,26 @@
         }
       } else {
         messageBox.textContent += "\n💖 The End 💖";
+        setTimeout(() => {
+          canvas.style.opacity = 0.3;
+          messageBox.innerHTML += "<br><br><span style='font-size:2em; color:#FFD700;'>🎓 Thank You, Teacher! 🎓</span>";
+        }, 2000);
       }
     }
 
-    // Start message and audio after 3 seconds or press 'f'
-    setTimeout(() => {
-      if (index === 0) {
-        typeWriter();
-        bgm.play().catch(() => {}); // Handle autoplay restrictions silently
-      }
-    }, 3000);
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      canvas.style.opacity = 1;
+      typeWriter();
+    });
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'f' && index === 0) {
-        typeWriter();
-        bgm.play().catch(() => {});
+      if (e.key === 'f' && index === 0 && startBtn.style.display !== 'none') {
+        startBtn.click();
       }
     });
+
+    drawStars();
   </script>
 </body>
 </html>
