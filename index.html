@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Farewell Platformer</title>
   <style>
     body {
@@ -23,6 +23,7 @@
       text-align: center;
       font-size: 1.2em;
       color: #00ffff;
+      white-space: pre-line;
     }
   </style>
 </head>
@@ -44,7 +45,6 @@
     };
 
     const keys = {};
-
     const gravity = 0.8;
     const jumpPower = -12;
 
@@ -68,8 +68,8 @@
       player.dy += gravity;
       player.y += player.dy;
 
-      if (player.y + player.height >= canvas.height) {
-        player.y = canvas.height - player.height;
+      if (player.y + player.height >= canvas.height - 20) {
+        player.y = canvas.height - 20 - player.height;
         player.dy = 0;
         player.onGround = true;
       } else {
@@ -79,8 +79,6 @@
       if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && player.onGround) {
         player.dy = jumpPower;
       }
-      if (keys['f']) {
-        typeWriter();
     }
 
     function drawGround() {
@@ -108,7 +106,7 @@
       "You made computers FUN.",
       "Here’s a virtual standing ovation from all of us! 👏👏👏",
       "With love, from Grade 6 💻💙",
-      "Goodbye and best wishes on your next adventure!"
+      "Goodbye and best wishes on your next adventure!",
       "Thank You!"
     ];
 
@@ -119,20 +117,30 @@
     function typeWriter() {
       if (index < messageText.length) {
         const line = messageText[index];
+        if (charIndex === 0) messageBox.textContent += "\n";  // Add spacing per line
+
         if (charIndex < line.length) {
           messageBox.textContent += line.charAt(charIndex);
           charIndex++;
           setTimeout(typeWriter, 50);
         } else {
-          messageBox.textContent += "\n";
           charIndex = 0;
           index++;
-          setTimeout(typeWriter, 1000);
+          setTimeout(typeWriter, 800);
         }
       }
     }
 
-    setTimeout(typeWriter, 3000);
+    // Auto-start after 3 sec OR press 'f' to trigger
+    setTimeout(() => {
+      if (index === 0) typeWriter();
+    }, 3000);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'f' && index === 0) {
+        typeWriter();
+      }
+    });
   </script>
 </body>
 </html>
